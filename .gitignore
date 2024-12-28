@@ -1,0 +1,5 @@
+landing_zone/cards_data/cards_data.csv
+landing_zone/train_fraud_labels.json
+landing_zone/transactions_data.csv
+landing_zone/users_data.csv
+landing_zone/mcc_codes/mcc_codes.json
