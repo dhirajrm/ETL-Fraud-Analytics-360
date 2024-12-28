@@ -1,7 +1,7 @@
 
 import os, configparser
 import pandas as pd
-import json
+import json,csv
 import finnhub
 from pathlib import Path
 
@@ -57,6 +57,22 @@ def read_csv_file(file_path,file_name):
     else:
         print(f"ERROR | Record count reconciliation failed | {file_row_count} <> {df_row_count}" )
 
+    file_stg_path = Path(file_path).parent.parent.joinpath('staging_zone').joinpath(file_name.split('.')[0]+'.csv')
+    print(f"INFO  | Staging Zone Path: {file_stg_path}")
+
+    
+    if file_size_mb > 100:
+        with open(file_stg_path,'w', newline='') as file:
+            for i in range(0,df_row_count,10000):
+                chunk_df = df.iloc[i:i+ 10000] 
+                chunk_df.to_csv(file,index=False,header=i == 0)
+    else:
+        df.to_csv(file_stg_path,index=False)
+
+    print(f"INFO  | File saved successfully in staging zone")
+    print("=====================================================================================================")
+
+
 """
 Name: read_json_file   
 Functionality: Read the json file and validate the data
@@ -85,11 +101,53 @@ def read_json_file(file_path,file_name):
     with open(file_full_path,'r', encoding='utf-8') as file:
         file_row_count = sum(1 for _ in file) - 1
 
-    with open(file_full_path,'r', encoding='utf-8') as file:
-        content = file.read()
-        content = json.loads(content)
-        content = [{'Code':key,'Description':values} for key,values in content.items()]
-        df = pd.DataFrame(content)
+    try:
+        print(f"INFO  | Reading JSON file: {file_full_path}")
+        
+        # Attempt to read as a standard JSON file
+        df = pd.read_json(file_full_path, orient='records')
+        print(f"INFO  | Successfully loaded JSON with orient='records'.")
+
+    except ValueError as ve:
+        print(f"WARNING | ValueError encountered: {ve}")
+        print(f"INFO    | Attempting alternative JSON parsing methods...")
+
+        try:
+            # Try reading JSON lines (line-separated JSON objects)
+            df = pd.read_json(file_full_path, lines=True)
+            print(f"INFO  | Successfully loaded JSON with lines=True.")
+        
+        except ValueError as ve_lines:
+            print(f"WARNING | Failed with lines=True: {ve_lines}")
+            
+            # Load JSON using the json module to inspect its structure
+            try:
+                with open(file_full_path, 'r') as file:
+                    raw_data = json.load(file)
+                    print(f"INFO  | Loaded JSON content using json module: {type(raw_data)}")
+
+                    # Handle scalar JSON (convert to DataFrame)
+                    if isinstance(raw_data, dict):
+                        df = pd.DataFrame([raw_data])  # Wrap in list for single-row DataFrame
+                        print(f"INFO  | Parsed scalar JSON into DataFrame.")
+                    
+                    # Handle nested JSON or list of records
+                    elif isinstance(raw_data, list):
+                        df = pd.DataFrame(raw_data)
+                        print(f"INFO  | Parsed list JSON into DataFrame.")
+                    
+                    else:
+                        raise ValueError("ERROR | Unsupported JSON structure.")
+            
+            except Exception as final_ex:
+                print(f"ERROR | Failed to parse JSON file: {final_ex}")
+    except FileNotFoundError as fnf:
+        print(f"ERROR | File not found: {file_full_path} - {fnf}")
+        return None
+    except Exception as e:
+        print(f"ERROR | Unexpected error while reading JSON: {e}")
+
+    df.reset_index(inplace=True)
 
     df_row_count = df.shape[0]
     print(f"INFO  | File records count: {file_row_count}")
@@ -99,9 +157,16 @@ def read_json_file(file_path,file_name):
     file_stg_path = Path(file_path).parent.parent.joinpath('staging_zone').joinpath(file_name.split('.')[0]+'.csv')
     print(f"INFO  | Staging Zone Path: {file_stg_path}")
 
-    df.to_csv(file_stg_path,index=False)
+    df_size_mb = df.memory_usage(deep=True).sum() / (1024**2)
+    if df_size_mb > 100:
+        with open(file_stg_path,'w', newline='') as file:
+            for i in range(0,df_row_count,10000):
+                chunk_df = df.iloc[i:i+ 10000] 
+                chunk_df.to_csv(file,index=False,header=i == 0)
+    else:
+        df.to_csv(file_stg_path,index=False)
     print(f"INFO  | File saved successfully in staging zone")
-
+    print("=====================================================================================================")
 
 
 
@@ -129,11 +194,21 @@ def extract_api_data(api_key,file_stg_path):
 
     print(f"INFO  | Staging Zone Path: {file_stg_path}")
 
-    df.to_csv(file_stg_path,index=False)
+    df_size_mb = df.memory_usage(deep=True).sum() / (1024**2)
+    if df_size_mb > 100:
+        with open(file_stg_path,'w', newline='') as file:
+            for i in range(0,df_row_count,10000):
+                chunk_df = df.iloc[i:i+ 10000] 
+                chunk_df.to_csv(file,index=False,header=i == 0)
+    else:
+        df.to_csv(file_stg_path,index=False)
     print(f"INFO  | File saved successfully in staging zone")
+    print("=====================================================================================================")
 
     
-
+"""
+Read the input config file trigger the respective function to extract the data.
+"""
 def main():
 
     config = configparser.ConfigParser()
@@ -150,14 +225,15 @@ def main():
             print(f"INFO  | Source: {src} | File Path: {file_path} | File Name: {file_name}")
 
             if file_name.split('.')[1] == 'csv':
-                read_csv_file(file_path,file_name) 
+                print("INFO  | CSV File")
+                #read_csv_file(file_path,file_name) 
             elif file_name.split('.')[1] == 'json':
                 read_json_file(file_path,file_name)
 
         elif src == 'api':
             api_key = config[section]['api_key']
             file_stg_path = config[section]['file_stg_path']
-            extract_api_data(api_key,file_stg_path)
+            #extract_api_data(api_key,file_stg_path)
             
         else:
             print("ERROR | Invalid source type")
