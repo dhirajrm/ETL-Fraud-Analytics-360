@@ -46,16 +46,22 @@ Configure your feed parameters: Update the INI files to specify your feed parame
 Run the pipeline:
 
 To execute the transformation and load the data, run the following:
-bash
-python main.py
+python extract.py
+python transform.py
+python load.py
 
 
 🔧 Built With
 Python: The main language used for scripting the ETL process.
+
 Pandas: For handling and transforming the data.
+
 SQLite: For loading the transformed data into a lightweight database.
+
 ConfigParser: To manage configuration settings in an easily readable format.
+
 📄 Example
+
 For an example of how your data will flow through the pipeline, see the example data files in the repository. The pipeline handles files like users_data.csv and cards_data.csv, performing a range of transformations and loading the results into the SQLite database.
 
 🤝 Contributions
