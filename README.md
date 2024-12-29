@@ -46,8 +46,11 @@ Configure your feed parameters: Update the INI files to specify your feed parame
 Run the pipeline:
 
 To execute the transformation and load the data, run the following:
+
 python extract.py
+
 python transform.py
+
 python load.py
 
 
