@@ -1,6 +1,8 @@
 # ETL Fraud Analytics 360
 
-Welcome to the Fraud Analytics 360 Data Transformation and Loading Pipeline repository! This project is designed to help you efficiently transform, load, and manage your data through a fully automated ETL (Extract, Transform, Load) process. Whether you're working with structured data like CSV files or dealing with complex transformations like JSON or API extracted data, this pipeline ensures your data is processed and loaded seamlessly into an SQLite database.
+Welcome to the Fraud Analytics 360 Data Transformation and Loading Pipeline repository!
+
+This project is designed to help you efficiently transform, load, and manage your data through a fully automated ETL (Extract, Transform, Load) process. Whether you're working with structured data like CSV files or dealing with complex transformations like JSON or API extracted data, this pipeline ensures your data is processed and loaded seamlessly into an SQLite database.
 
 🚀 Features
 
