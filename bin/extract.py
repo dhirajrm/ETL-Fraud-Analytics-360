@@ -70,7 +70,6 @@ def read_csv_file(file_path,file_name):
         df.to_csv(file_stg_path,index=False)
 
     print(f"INFO  | File saved successfully in staging zone")
-    print("=====================================================================================================")
 
 
 """
@@ -166,19 +165,18 @@ def read_json_file(file_path,file_name):
     else:
         df.to_csv(file_stg_path,index=False)
     print(f"INFO  | File saved successfully in staging zone")
-    print("=====================================================================================================")
 
 
 
 """
 Name: extract_api_data
 Functionality: Extract the data from API
-Input: api_key
+Input: api_key,file_name,file_stg_path
 Output: None
 """
-def extract_api_data(api_key,file_stg_path):
-    data = 'market_status'
-    file_stg_path = Path(file_stg_path).joinpath(data+'.csv')
+def extract_api_data(api_key,file_name,file_stg_path):
+
+    file_stg_path = Path(file_stg_path).joinpath(file_name+'.csv')
     
     finnhub_client = finnhub.Client(api_key=api_key)
 
@@ -203,8 +201,14 @@ def extract_api_data(api_key,file_stg_path):
     else:
         df.to_csv(file_stg_path,index=False)
     print(f"INFO  | File saved successfully in staging zone")
-    print("=====================================================================================================")
 
+def ini_generate(section,file_name,file_path):
+    config = configparser.ConfigParser()
+    file_stg_path = Path(file_path).parent.parent.joinpath('staging_zone').joinpath(file_name.split('.')[0]+'.csv')
+    config[section] = {'file_stg_path' : file_stg_path ,'file_name' : (file_name if file_name.split('.')[0] == 'csv' else file_name.split('.')[0] + '.csv')}
+    with open(r'C:\ETL_Fraud_360\conf\transform_input.ini','a') as file:
+        config.write(file)
+    print(f"INFO  | Config file generated successfully")
     
 """
 Read the input config file trigger the respective function to extract the data.
@@ -213,7 +217,10 @@ def main():
 
     config = configparser.ConfigParser()
 
-    config.read("C:\ETL_Fraud_360\conf\input.conf")
+    config.read("C:\ETL_Fraud_360\conf\extract_input.ini")
+
+    if os.path.exists(r'C:\ETL_Fraud_360\conf\transform_input.ini'):
+        os.remove(r'C:\ETL_Fraud_360\conf\transform_input.ini')
 
     for section in config.sections():
         print(f"INFO  | Section: {section}")
@@ -222,21 +229,28 @@ def main():
         if src == 'file':
             file_path = config[section]['file_path']
             file_name = config[section]['file_name']
+            
             print(f"INFO  | Source: {src} | File Path: {file_path} | File Name: {file_name}")
 
             if file_name.split('.')[1] == 'csv':
-                print("INFO  | CSV File")
-                #read_csv_file(file_path,file_name) 
+                read_csv_file(file_path,file_name) 
+                ini_generate(section,file_name,file_path)
             elif file_name.split('.')[1] == 'json':
                 read_json_file(file_path,file_name)
+                ini_generate(section,file_name,file_path)
 
         elif src == 'api':
             api_key = config[section]['api_key']
+            api_name = config[section]['api_name']
             file_stg_path = config[section]['file_stg_path']
-            #extract_api_data(api_key,file_stg_path)
+            extract_api_data(api_key,api_name,file_stg_path)
+            ini_generate(section,api_name,file_path)
             
         else:
             print("ERROR | Invalid source type")
 
-if __name__ == '__main__':
+        print("=====================================================================================================")
+
+
+if __name__ == "__main__":
     main()
