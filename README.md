@@ -1,4 +1,4 @@
-# ETL-Fraud-Analytics-360
+# ETL Fraud Analytics 360
 
 Welcome to the Fraud Analytics 360 Data Transformation and Loading Pipeline repository! This project is designed to help you efficiently transform, load, and manage your data through a fully automated ETL (Extract, Transform, Load) process. Whether you're working with structured data like CSV files or dealing with complex transformations, this pipeline ensures your data is processed and loaded seamlessly into an SQLite database.
 
@@ -25,13 +25,13 @@ To get started with the pipeline, follow these simple steps:
 Clone the repository:
 
 bash
-Copy code
-git clone https://github.com/yourusername/data-transformation-pipeline.git
+
+git clone hhttps://github.com/dhirajrm/ETL-Fraud-Analytics-360.git
 cd data-transformation-pipeline
 Install dependencies:
 
 bash
-Copy code
+
 pip install -r requirements.txt
 Configure your feed parameters: Update the INI files to specify your feed parameters like file paths and staging zones.
 
@@ -39,9 +39,8 @@ Run the pipeline:
 
 To execute the transformation and load the data, run the following:
 bash
-Copy code
 python main.py
-Check the logs: View the log files to monitor the execution progress and catch any errors.
+
 
 🔧 Built With
 Python: The main language used for scripting the ETL process.
